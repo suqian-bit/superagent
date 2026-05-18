@@ -1,0 +1,31 @@
+# systemd user unit for hermes knowledge profile gateway
+# 安装位置: ~/.config/systemd/user/hermes-gateway-knowledge.service
+#
+# install.sh 会自动替换路径，不需要手动改。
+
+[Unit]
+Description=Hermes Agent Gateway - Knowledge Profile
+After=network.target
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=__HERMES_VENV__/bin/python -m hermes_cli.main --profile knowledge gateway run --replace
+WorkingDirectory=__HERMES_AGENT_ROOT__
+Environment="PATH=__HERMES_VENV__/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin"
+Environment="VIRTUAL_ENV=__HERMES_VENV__"
+Environment="HERMES_HOME=__HERMES_HOME__"
+EnvironmentFile=-__HERMES_HOME__/.env
+Restart=on-failure
+RestartSec=30
+RestartForceExitStatus=75
+KillMode=mixed
+KillSignal=SIGTERM
+ExecReload=/bin/kill -USR1 $MAINPID
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

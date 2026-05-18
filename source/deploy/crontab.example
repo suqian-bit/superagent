@@ -1,0 +1,21 @@
+# =================================================================
+# 知识助手 crontab 模板
+#
+# 安装：
+#   crontab -l > /tmp/cron_old && cat /tmp/cron_old crontab.example | crontab -
+#
+# 注意：服务器是 UTC 时区，cron 时间是 UTC，注释里标了对应的北京时间。
+# =================================================================
+
+# --- 复习推送（北京 9:00 / 13:00 / 21:00 三次主动推）---
+# UTC 1 = 北京 9, UTC 5 = 北京 13, UTC 13 = 北京 21
+# 没 due 时早 9 点推一条心跳消息（避免主人以为系统挂了）
+0 1,5,13 * * * /usr/local/bin/review-push >> /var/log/review_pusher.log 2>&1
+
+# --- 周报推送（周日北京 22:00 = UTC 周日 14:00）---
+# 含本周收录数 / Top 内容 / 标签云 / 复习情况 / AI 观察
+0 14 * * 0 /usr/local/bin/weekly-report >> /var/log/weekly_report.log 2>&1
+
+# --- OCR Stash 过期检查（每分钟）---
+# 多张截图聚合：5 分钟没新增就自动 commit（≥100 字）或清空
+* * * * * /usr/local/bin/ocr-stash expire-check >> /var/log/ocr_stash.log 2>&1

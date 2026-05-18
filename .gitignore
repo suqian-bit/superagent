@@ -1,0 +1,59 @@
+# =================================================================
+# 知识助手 gitignore
+# =================================================================
+
+# === 个人知识库内容（不进 git）===
+items/                                    # 自动收录的 md 文件
+*.db                                      # SQLite 文件
+*.db-journal
+*.db-wal
+*.db-shm
+
+# === Obsidian 个人配置（整个排除，每个人有自己的偏好）===
+.obsidian/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+
+# === 模型 / 缓存 ===
+whisper_models/
+embed_models/
+chroma_db/
+
+# === 临时 / 日志 ===
+*.log
+*.tmp
+*.bak
+*.bak.*
+.DS_Store
+Thumbs.db
+tmp/
+/tmp/
+
+# === 密钥 / 凭证（绝不能提交）===
+.env
+.env.local
+**/cookies/*.txt
+**/cookies/*.json
+*.pem
+*.key
+*_cookies.txt
+
+# === 服务器实际数据（应该在服务器上，不在 repo）===
+attachments/
+downloads/
+transcripts/
+
+# === 用户自己生成的内容 ===
+meta/private/
+notes/personal/
+
+# === 大于 1MB 的 pip freeze 输出（让 requirements.txt 当唯一真相）===
+source/deploy/requirements-full-pip-freeze.txt

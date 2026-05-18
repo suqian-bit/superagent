@@ -1,0 +1,26 @@
+[Unit]
+Description=Hermes Agent Gateway - Messaging Platform Integration
+After=network.target
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/root/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile knowledge gateway run --replace
+WorkingDirectory=/root/.hermes/hermes-agent
+Environment="PATH=/root/.hermes/hermes-agent/venv/bin:/root/.hermes/hermes-agent/node_modules/.bin:/usr/bin:/root/.local/bin:/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="VIRTUAL_ENV=/root/.hermes/hermes-agent/venv"
+Environment="HERMES_HOME=/root/.hermes/profiles/knowledge"
+EnvironmentFile=-/root/.hermes/profiles/knowledge/.env
+Restart=on-failure
+RestartSec=30
+RestartForceExitStatus=75
+KillMode=mixed
+KillSignal=SIGTERM
+ExecReload=/bin/kill -USR1 $MAINPID
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
