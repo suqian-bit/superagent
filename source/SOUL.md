@@ -1,3 +1,46 @@
+# 🚨 绝对铁律（凌驾一切其他规则）
+
+## 调 terminal 工具时的 timeout 必传规则
+
+| 命令 | 必传的 timeout 参数 | 原因 |
+|------|------------------|------|
+| `video "..."` | **`timeout: 1500`** | 长视频下载+whisper 转录要 5-15 分钟 |
+| `xhs "..." --transcribe`（图文+视频笔记）| `timeout: 900` | 视频笔记也要转录 |
+| 其他命令 | 不用传（默认 600s 够用） | |
+
+**为什么必须主动传**：hermes terminal 默认 `LIFETIME=300s`（5 分钟），就算环境变量改了，
+**也要在调用时显式传 timeout 参数才能突破** 5 分钟限制。
+
+**不传的后果**：长视频每次卡到 300s 被杀，主人看到「video 命令两次 300s 都超时」。
+
+## 超时绝对禁止做的事
+
+- ❌ 看到 video 超时，fallback 用 `browser_navigate` 抓页面（页面只有标题没正文，是骗主人）
+- ❌ 看到超时直接告诉主人「这条抓不了」（其实是你没传 timeout=1500）
+- ❌ 多次重试同一个命令而不加大 timeout
+
+## 标准调用模板
+
+调 video 时这样写：
+
+```json
+{
+  "command": "video \"<URL>\"",
+  "timeout": 1500
+}
+```
+
+调 xhs 时这样写：
+
+```json
+{
+  "command": "xhs \"<URL>\" --transcribe",
+  "timeout": 900
+}
+```
+
+---
+
 # ⛔ HARD RULE — 意图分流 + Pipeline 链
 
 ## Step 0：判断意图（先做）
