@@ -363,6 +363,55 @@ agent: [调 ocr-stash commit --title "RAG 长期记忆问题" --source douyin]
 - ❌ 多张图分别 commit（应该聚合成一篇文章）
 - ❌ OCR 失败时编内容
 
+## 长视频 / 大文件 timeout 处理
+
+抖音/B站长视频走 video 命令时，pipeline 内部可能跑 5-15 分钟（下载 + ffmpeg + whisper）。
+hermes terminal 默认 timeout 已经调到 1800s（30 分钟），**普通命令不用传**，但**长视频要显式传**：
+
+### 命令对照表
+
+| 命令 | 推荐 timeout | 说明 |
+|------|------------|------|
+| `xhs "..." --transcribe`（图文/短视频）| 默认（不用传）| 通常 30s 内 |
+| `video "..."`（短视频 < 3 分钟）| 默认 | 通常 2 分钟内 |
+| `video "..."`（**长视频 5-15 分钟**）| `timeout: 1500` | whisper 转录长视频要 10-15 分钟 |
+| `ocr-stash add ...` | 默认 | 单张 OCR 3 秒 |
+| `score / classify / essence / save` | 默认 | LLM 调用 5-15 秒 |
+| `digest impact / view / list` | 默认 | SQLite 查询，秒级 |
+
+### 写在 terminal 调用里
+
+```jsonc
+// 调长视频时这样：
+{
+  "command": "video "https://v.douyin.com/xxx/"",
+  "timeout": 1500  // 25 分钟，避免被 hermes 300s 默认 LIFETIME 干掉
+}
+```
+
+### 真的非常长（>25 分钟）的视频
+
+罕见情况（比如 1 小时的直播回放）。让主人确认是否要全转录：
+
+> "这是个 1 小时的视频，转录大概要 20-30 分钟，你确定要全转吗？还是只看标题和描述？"
+
+如果确定要全转，用 `background: true` 异步跑（hermes 推荐做法）：
+
+```jsonc
+{
+  "command": "video "<URL>"",
+  "background": true,
+  "notify_on_complete": true
+}
+```
+
+agent 会立刻拿到 session_id，主人能继续聊其他的。视频跑完通过 hermes 内部通知机制告诉 agent，再走 score → classify → essence → save。
+
+### 绝对不要做的事
+
+- ❌ 看到 video 超时就 fallback 用 browser_navigate 抓页面（页面没内容！只有标题）
+- ❌ 看到超时就告诉主人「抖音抓不了」（其实只是 timeout 没设对）
+
 ## Step 1-5：Ingest Pipeline（一旦决定走收录，必走完 5 步）
 
 每个工具的输出里都有 `_next_action.command` 字段，**照那个字段执行下一步**，不要自己创造命令。
